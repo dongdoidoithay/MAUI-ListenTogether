@@ -1,0 +1,90 @@
+﻿@page "/song-menu/{platform:int}/{songMenuType:int}/{*songMenuInfo}"
+@inherits MyComponentBase
+@inject MusicNetPlatform _musicNetPlatform
+@inject IPlaylistService PlaylistService
+@inject ISnackbar Snackbar
+@inject MusicResultService MusicResultService
+
+<RouteAnimation>
+    <div class="d-flex mb-3">
+        <MudImage Src="@_songMenu.ImageUrl"
+                  Elevation="25"
+                  ObjectFit="ObjectFit.Cover"
+                  Width="120"
+                  Height="120"
+                  Class="rounded-lg" />
+        <div class="ml-3">
+            <MudText Typo="Typo.h6" Class="mt-1 mb-2">@_songMenu.Name</MudText>
+            <MudButton Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.PlayCircleOutline"
+                       Size="Size.Small"
+                       IconColor="Color.Primary"
+                       Disabled="@(_musics==null || !_musics.Any())"
+                       OnClick="PlayAllAsync">播放全部</MudButton>
+        </div>
+    </div>
+
+    <MusicResultView Musics="@_musics" />
+</RouteAnimation>
+@code {
+
+    [Parameter]
+    public int Platform { get; set; }
+    [Parameter]
+    public int SongMenuType { get; set; }
+    [Parameter]
+    public string SongMenuInfo { get; set; } = null!;
+
+    private PlatformEnum _platform => (PlatformEnum)Platform;
+    private SongMenuEnum _songMenuType => (SongMenuEnum)SongMenuType;
+    private SongMenu _songMenu = null!;
+    private List<Music>? _musics;
+    protected override async Task OnInitializedAsync()
+    {
+        var json = JiuLing.CommonLibs.Security.Base64Utils.Base64ToString(SongMenuInfo);
+        _songMenu = json.ToObject<SongMenu>() ?? throw new ArgumentException();
+
+        switch (_songMenuType)
+        {
+            case SongMenuEnum.Top:
+                await GetTopMusicsAsync();
+                break;
+            case SongMenuEnum.Tag:
+                await GetTagMusicsAsync();
+                break;
+            default:
+                throw new ArgumentException();
+        }
+        //IMusicSearchFilter vipMusicFilter = new VipMusicFilter();
+        //_musics = vipMusicFilter.Filter(_musics);
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task GetTopMusicsAsync()
+    {
+        _musics = await _musicNetPlatform.GetTopMusicsAsync((NetMusicLib.Enums.PlatformEnum)_platform, _songMenu.Id);
+    }
+    private async Task GetTagMusicsAsync()
+    {
+        _musics = await _musicNetPlatform.GetTagMusicsAsync((NetMusicLib.Enums.PlatformEnum)_platform, _songMenu.Id);
+    }
+
+    private async Task PlayAllAsync()
+    {
+        if (_musics == null || !_musics.Any())
+        {
+            return;
+        }
+
+        if (Settings.Environment.Play.IsCleanPlaylistWhenPlaySongMenu)
+        {
+            if (!await PlaylistService.RemoveAllAsync())
+            {
+                Snackbar.Add("播放列表清空失败", Severity.Error);
+                return;
+            }
+        }
+        await MusicResultService.PlayAllAsync(_musics.ToLocalMusics());
+    }
+}

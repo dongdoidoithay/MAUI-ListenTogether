@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:ListenTogether.Controls"
+             x:Class="ListenTogether.Pages.LogPage"
+             Title="日志"
+             BackgroundColor="{AppThemeBinding Dark={StaticResource DarkBackground},Light={StaticResource LightBackground}}">
+
+    <Grid Margin="{OnPlatform WinUI=16,MacCatalyst=16,Android='10,5,10,5',iOS='10,5,10,5'}">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="40" />
+        </Grid.RowDefinitions>
+
+        <Label
+            Grid.Row="0"
+            Text="日志"
+            Style="{StaticResource Title}"/>
+
+        <CollectionView
+            Grid.Row="1"
+            VerticalOptions="FillAndExpand"
+            ItemsSource="{Binding Logs}"
+            EmptyView="啥日志也没有哦"
+            SelectionMode="None"  >
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <StackLayout Margin="0,0,0,10">
+                        <Label Text="{Binding Time}"
+                               Style="{StaticResource Explain}"/>
+                        <Label Text="{Binding Message}"
+                               Style="{StaticResource Explain}"/>
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Grid.Row="2"
+                Text="清空日志"
+                VerticalOptions="End"
+                Command="{Binding ClearLogsAsyncCommand}"
+                BackgroundColor="{AppThemeBinding Dark={StaticResource DarkBtnBackground},Light={StaticResource LightBtnBackground}}"
+                TextColor="{AppThemeBinding Dark={StaticResource DarkBtnText},Light={StaticResource LightBtnText}}"/>
+    </Grid>
+</ContentPage>

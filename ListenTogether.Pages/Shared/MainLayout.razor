@@ -1,0 +1,130 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject IWindowMoving WindowMoving;
+@inject IAutoUpgrade AutoUpgrade
+@inject INativeTheme NativeTheme
+
+@inject CustomTheme CustomTheme
+@inject ILogger<MainLayout> _logger
+
+<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" Theme="_customTheme" />
+<MudDialogProvider NoHeader="true" />
+<MudSnackbarProvider />
+<ErrorBoundary @ref="@_errorBoundary">
+    <ChildContent>
+        <div class="page">
+            <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                <div class="page-header d-flex" @onmouseup="MouseUp" @onmousedown="MouseDown">
+                    <div class="logo d-flex align-center">
+                        <MudImage Src="https://jiuling.cc/images/music.svg" Width="30" Height="30" />
+                        <div class="title ml-2">一起听</div>
+                    </div>
+                    <div class="d-flex align-center" @onmouseup:stopPropagation="true" @onmousedown:stopPropagation="true">
+                        <NavBeforeNext />
+                    </div>
+                    <div class="flex-grow-1 ml-2 d-flex align-center">
+                        @if (!NavigationManager.Uri.EndsWith("/search"))
+                        {
+                            <div style="width:250px" @onmouseup:stopPropagation="true" @onmousedown:stopPropagation="true">
+                                <SearchLabel />
+                            </div>
+                        }
+                    </div>
+                    <div @onmouseup:stopPropagation="true" @onmousedown:stopPropagation="true">
+                        <DesktopTitleBar />
+                    </div>
+                </div>
+            </MudHidden>
+
+            <div class="page-nav">
+                <NavMenu />
+            </div>
+            <div class="page-main">
+                <div class="containerPage">
+                    @Body
+                </div>
+            </div>
+            <div class="page-bottom">
+                <PlayerBar OnOpenPlayingPage="OpenPlayingPage" />
+            </div>
+        </div>
+    </ChildContent>
+    <ErrorContent Context="ex">
+        <div class="pa-5" style="user-select: text;">
+            <div class="d-flex justify-space-between align-center">
+                <MudAlert Class="mr-2"
+                          Variant="Variant.Filled"
+                          Dense="true"
+                          Severity="Severity.Error">程序遇到了未知错误！</MudAlert>
+
+                <MudButton Variant="Variant.Outlined"
+                           Size="Size.Small"
+                           IconColor="Color.Primary"
+                           OnClick="@(()=>ResetError(ex))">确定</MudButton>
+            </div>
+            <div class="error-message mt-3">
+                @($"{ex.Message}{Environment.NewLine}{ex.StackTrace}")
+            </div>
+        </div>
+    </ErrorContent>
+</ErrorBoundary>
+@code {
+    private bool _isDarkMode;
+    private ErrorBoundary? _errorBoundary;
+    private MudThemeProvider _mudThemeProvider;
+    private MudTheme _customTheme;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _customTheme = CustomTheme.Theme;
+    }
+
+    private void OpenPlayingPage()
+    {
+        NavigationManager.NavigateTo("/playing");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            switch (Settings.Environment.General.AppThemeInt)
+            {
+                case 0:
+                    _isDarkMode = await _mudThemeProvider.GetSystemPreference();
+                    break;
+                case 1:
+                    _isDarkMode = false;
+                    break;
+                case 2:
+                    _isDarkMode = true;
+                    break;
+                default:
+                    break;
+            }
+            await InvokeAsync(StateHasChanged);
+            await NativeTheme.SetThemeAsync(_isDarkMode);
+            if (Settings.Environment.General.IsAutoCheckUpdate)
+            {
+                await AutoUpgrade.DoAsync(true);
+            }
+        }
+    }
+
+    private void ResetError(Exception ex)
+    {
+        _logger.LogError(ex, "未处理的异常。");
+        _errorBoundary?.Recover();
+    }
+
+    private void MouseDown()
+    {
+        WindowMoving.MouseDown();
+    }
+
+    private void MouseUp()
+    {
+        WindowMoving.MouseUp();
+    }
+}

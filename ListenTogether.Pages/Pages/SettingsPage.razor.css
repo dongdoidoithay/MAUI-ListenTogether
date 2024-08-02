@@ -1,0 +1,34 @@
+@media screen and (min-width: 960px) {
+    .page {
+        width: 400px;
+        margin: auto;
+    }
+}
+
+@media screen and (max-width: 960px) {
+}
+
+.page {
+    padding-top: 10px;
+}
+
+.type-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.app-title {
+    font-size: 20px;
+}
+
+.app-text {
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+.app-link {
+    font-size: 13px;
+    opacity: 0.8;
+    cursor: pointer;
+    text-decoration: underline
+}

@@ -1,0 +1,30 @@
+.player-main {
+    height: 80px;
+}
+
+.music-image {
+    height: 45px;
+}
+
+.music-detail {
+    margin-left: 16px;
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.music-title {
+    flex: 1;
+    width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--mud-palette-white);
+}
+
+.time {
+    width: 100px;
+    text-align: right;
+    color: var(--mud-palette-white);
+}

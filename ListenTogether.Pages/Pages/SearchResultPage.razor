@@ -1,0 +1,75 @@
+﻿@page "/search-result/{Keyword}"
+@using ListenTogether.Filters.MusicSearchFilter;
+
+@inject MusicNetPlatform _musicNetPlatform
+@inject IPlaylistService PlaylistService
+@inject ISnackbar Snackbar
+@inject MusicResultService MusicResultService
+<RouteAnimation>
+    @if (_musics == null)
+    {
+        <MudSkeleton Class="mt-3" Height="60px" />
+        <MudSkeleton Class="mt-3" Height="60px" />
+        <MudSkeleton Class="mt-3" Height="60px" />
+        <MudSkeleton Class="mt-3" Height="60px" />
+        <MudSkeleton Class="mt-3" Height="60px" />
+    }
+    else
+    {
+        <MudButton Variant="Variant.Outlined"
+                   StartIcon="@Icons.Material.Filled.PlayCircleOutline"
+                   IconColor="Color.Primary"
+                   Size="Size.Small"
+                   Disabled="@(_musics==null || !_musics.Any())"
+                   OnClick="PlayAllAsync">播放全部</MudButton>
+
+        <MusicResultView Musics="@_musics" />
+    }
+
+</RouteAnimation>
+@code {
+    [Parameter]
+    public string Keyword { get; set; } = null!;
+
+    private List<Music>? _musics;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        var musics = await _musicNetPlatform.SearchAsync((NetMusicLib.Enums.PlatformEnum)Settings.Environment.Search.EnablePlatform, Keyword);
+
+        if (Settings.Environment.Search.IsMatchSearchKey)
+        {
+            IMusicSearchFilter searchKeyFilter = new SearchKeyFilter(Keyword);
+            musics = searchKeyFilter.Filter(musics);
+        }
+        if (Settings.Environment.Search.IsHideShortMusic)
+        {
+            IMusicSearchFilter shortMusicFilter = new ShortMusicFilter();
+            musics = shortMusicFilter.Filter(musics);
+        }
+
+        IMusicSearchFilter vipMusicFilter = new VipMusicFilter();
+        musics = vipMusicFilter.Filter(musics);
+        _musics = musics;
+    }
+
+    private async Task PlayAllAsync()
+    {
+        if (_musics == null || !_musics.Any())
+        {
+            return;
+        }
+
+        if (Settings.Environment.Play.IsCleanPlaylistWhenPlaySongMenu)
+        {
+            if (!await PlaylistService.RemoveAllAsync())
+            {
+                Snackbar.Add("播放列表清空失败", Severity.Error);
+                return;
+            }
+        }
+        await MusicResultService.PlayAllAsync(_musics.ToLocalMusics());
+    }
+
+}

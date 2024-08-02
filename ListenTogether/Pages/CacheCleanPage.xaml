@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:ListenTogether.Controls"
+             xmlns:viewmodels="clr-namespace:ListenTogether.ViewModels"
+             x:Class="ListenTogether.Pages.CacheCleanPage"
+             Title="缓存清理"
+             BackgroundColor="{AppThemeBinding Dark={StaticResource DarkBackground},Light={StaticResource LightBackground}}">
+
+    <Grid Margin="{OnPlatform WinUI=16,MacCatalyst=16,Android='10,5,10,5',iOS='10,5,10,5'}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <Label 
+            Grid.Row="0"
+            Text="{Binding AllSizeString,StringFormat='缓存清理  {0}MB'}"
+            Style="{StaticResource Title}"/>
+
+        <ScrollView
+            Grid.Row="1"
+            VerticalOptions="FillAndExpand">
+            <CollectionView ItemsSource="{Binding Caches}"
+                        EmptyView="没有缓存的歌曲，快去听歌吧"
+                        SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <StackLayout
+                            Orientation="Horizontal"
+                            BackgroundColor="Transparent">
+                            <Label Text="{Binding Remark}"                                   
+                                   LineBreakMode="NoWrap"/>
+                        </StackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </ScrollView>
+
+        <Button
+            Text="删除"
+            Grid.Row="2"
+            VerticalOptions="End"
+            HorizontalOptions="{OnPlatform WinUI=Start,MacCatalyst=Start,Android=End,iOS=End}"
+            BackgroundColor="{AppThemeBinding Dark={StaticResource DarkBtnBackground},Light={StaticResource LightBtnBackground}}"
+            TextColor="{AppThemeBinding Dark={StaticResource DarkBtnText},Light={StaticResource LightBtnText}}"
+            Command="{Binding ClearAsyncCommand}"/>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:ListenTogether.ViewModels"
+             xmlns:controls="clr-namespace:ListenTogether.Controls"
+             xmlns:hc="clr-namespace:ListenTogether.HandCursorControls"
+             x:Class="ListenTogether.Pages.DiscoverPage"
+             Title="DiscoverPage">
+
+    <Grid
+        RowDefinitions="Auto,Auto,*,Auto"
+        RowSpacing="10"
+        BackgroundColor="{AppThemeBinding Dark={StaticResource DarkBackground},Light={StaticResource LightBackground}}">
+
+        <!--
+        移动端单列布局:
+            row1 搜索栏
+            row2 平台
+        
+        桌面端单行布局:
+            col1 平台     col2 搜索栏
+        -->
+        <Grid
+            Grid.Row="0"
+            Padding="10,8,10,8"
+            RowDefinitions="{OnPlatform WinUI='45',MacCatalyst='45',Android='30,45',iOS='30,45'}"
+            ColumnDefinitions="{OnPlatform WinUI='*,200',MacCatalyst='*,200',Android='*',iOS='*'}">
+
+            <HorizontalStackLayout
+                Grid.Row="{OnPlatform WinUI=0,MacCatalyst=0,Android=1,iOS=1}"
+                Grid.Column="{OnPlatform WinUI=0,MacCatalyst=0,Android=0,iOS=0}"
+                BindableLayout.ItemsSource="{Binding DiscoverTabs}"
+                Spacing="20">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate>
+                        <VerticalStackLayout
+                            Spacing="3"
+                            VerticalOptions="End">
+                            <VerticalStackLayout.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:DiscoverPageViewModel}}, Path=TabChangedAsyncCommand}"
+                                    CommandParameter="{Binding Id}"/>
+                            </VerticalStackLayout.GestureRecognizers>
+                            <hc:HandCursorLabel
+                                Text="{Binding Name}"
+                                VerticalTextAlignment="End"
+                                Style="{StaticResource Tab}">
+                                <hc:HandCursorLabel.Triggers>
+                                    <DataTrigger
+                                        TargetType="hc:HandCursorLabel"
+                                        Binding="{Binding IsSelected}"
+                                        Value="true">
+                                        <Setter
+                                            Property="FontSize"
+                                            Value="18"/>
+                                        <Setter
+                                            Property="FontAttributes"
+                                            Value="Bold"/>
+                                    </DataTrigger>
+                                </hc:HandCursorLabel.Triggers>
+                            </hc:HandCursorLabel>
+                            <BoxView
+                                HeightRequest="3"
+                                Margin="8,0,8,0"
+                                Color="Transparent">
+                                <BoxView.Triggers>
+                                    <DataTrigger
+                                        TargetType="BoxView"
+                                        Binding="{Binding IsSelected}"
+                                        Value="true">
+                                        <Setter
+                                            Property="Color"
+                                            Value="{StaticResource Main}"/>
+                                    </DataTrigger>
+                                </BoxView.Triggers>
+                            </BoxView>
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </HorizontalStackLayout>
+
+            <Border
+                Grid.Row="{OnPlatform WinUI=0,MacCatalyst=0,Android=0,iOS=0}"
+                Grid.Column="{OnPlatform WinUI=1,MacCatalyst=1,Android=0,iOS=0}"
+                HeightRequest="35"
+                VerticalOptions="Start"
+                Padding="5,0,5,0"
+                BackgroundColor="{AppThemeBinding Dark={StaticResource DarkSearchBarBackgroundColor},Light={StaticResource LightSearchBarBackgroundColor}}"
+                StrokeThickness="1">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="5" />
+                </Border.StrokeShape>
+                <HorizontalStackLayout
+                    Spacing="5"
+                    BackgroundColor="Transparent">
+                    <HorizontalStackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:DiscoverPageViewModel}}, Path=GoToSearchPageAsyncCommand}"/>
+                    </HorizontalStackLayout.GestureRecognizers>
+                    <Image
+                        Source="{AppThemeBinding Dark='search_dark.png',Light='search.png'}"
+                        Aspect="AspectFill"
+                        WidthRequest="15"
+                        HeightRequest="15"
+                        VerticalOptions="Center"/>
+                    <Label
+                        VerticalTextAlignment="Center"
+                        TextColor="{AppThemeBinding Dark={StaticResource DarkSearchBarTextColor},Light={StaticResource LightSearchBarTextColor}}"
+                        FontSize="{OnPlatform WinUI=14,MacCatalyst=14,Android=13,iOS=13}"
+                        Text="歌曲搜索"/>
+                </HorizontalStackLayout>
+            </Border>
+        </Grid>
+
+        <Border
+            Grid.Row="1"
+            Padding="10,0,10,0"
+            Margin="0,-10,0,0"
+            BackgroundColor="Transparent"
+            StrokeThickness="0">
+            <FlexLayout
+                FlexLayout.Grow="0"
+                Direction="Row"
+                Wrap="Wrap"
+                AlignContent="Start"
+                BindableLayout.ItemsSource="{Binding DiscoverTags}">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate>
+                        <hc:HandCursorStackLayout
+                            Margin="0,0,2,0"
+                            HeightRequest="28"
+                            Style="{StaticResource DataRowEnter}">
+                            <hc:HandCursorStackLayout.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:DiscoverPageViewModel}}, Path=TagChangedAsyncCommand}"
+                                    CommandParameter="{Binding Id}"/>
+                            </hc:HandCursorStackLayout.GestureRecognizers>
+
+                            <Border
+                                Padding="4,2,4,2"
+                                StrokeThickness="1"
+                                BackgroundColor="Transparent"
+                                HorizontalOptions="Center">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="5" />
+                                </Border.StrokeShape>
+                                <Border.Triggers>
+                                    <DataTrigger
+                                        TargetType="Border"
+                                        Binding="{Binding IsSelected}"
+                                        Value="true">
+                                        <Setter
+                                            Property="BackgroundColor"
+                                            Value="{StaticResource Main}"/>
+                                    </DataTrigger>
+                                </Border.Triggers>
+                                <Label Text="{Binding Name}"/>
+                            </Border>
+                        </hc:HandCursorStackLayout>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </FlexLayout>
+        </Border>
+
+        <CollectionView
+            Grid.Row="2"
+            WidthRequest="{OnPlatform WinUI=800,MacCatalyst=800}"
+            VerticalOptions="FillAndExpand"
+            ItemsSource="{Binding SongMenus}"
+            ItemsLayout="{OnPlatform WinUI='VerticalGrid, 5',MacCatalyst='VerticalGrid, 5',Android='VerticalGrid, 3',iOS='VerticalGrid, 3'}"
+            BackgroundColor="Transparent"
+            RemainingItemsThreshold="{OnPlatform WinUI=5,MacCatalyst=5,Android=3,iOS=3}"
+            RemainingItemsThresholdReachedCommand="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:DiscoverPageViewModel}}, Path=LoadLastPageTagSongMenusAsyncCommand}"
+            Scrolled="CollectionView_Scrolled">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid
+                        Padding="10"
+                        RowSpacing="5"
+                        RowDefinitions="Auto,Auto">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:DiscoverPageViewModel}}, Path=GotoSongMenuPageAsyncCommand}"
+                                CommandParameter="{Binding .}"/>
+                        </Grid.GestureRecognizers>
+                        <Border
+                            Grid.Row="0"
+                            StrokeThickness="0.1"
+                            StrokeShape="RoundRectangle 10">
+                            <Image
+                                Aspect="AspectFill"
+                                Source="{Binding ImageUrl}"/>
+                        </Border>
+                        <Label
+                            Grid.Row="1"
+                            Text="{Binding Name}"
+                            Style="{StaticResource Explain}"
+                            LineBreakMode="WordWrap"/>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <controls:Player
+            Grid.Row="3"
+            x:Name="player"
+            IsPlayingPage="False"/>
+    </Grid>
+</ContentPage>

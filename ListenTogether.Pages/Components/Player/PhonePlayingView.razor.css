@@ -1,0 +1,13 @@
+.player-main {
+    margin: 10px 10px 15px 10px;
+    height: 150px;
+}
+
+.text-white {
+    color: var(--mud-palette-white);
+}
+
+.time {
+    width: 50px;
+    text-align: center;
+}

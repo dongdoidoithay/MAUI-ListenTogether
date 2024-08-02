@@ -1,0 +1,126 @@
+﻿@page "/search"
+@using ListenTogether.Data.Api
+
+@inject NavigationManager NavigationManager
+@inject MusicNetPlatform _musicNetPlatform
+@inject ISearchHistoryStorage SearchHistoryStorage
+
+<RouteAnimation>
+    <div class="page pt-2 pb-2 pl-1 pr-1">
+        <SearchBar OnSearch="@DoSearchAsync" />
+
+        <div class="suggest mt-3">
+            <div class="histories">
+                <div class="suggest-title">
+                    搜索历史
+                    <MudIconButton Icon="fa-solid fa-trash"
+                                   OnClick="ClearHistory"
+                                   Size="Size.Small"
+                                   Class="ml-2"></MudIconButton>
+                </div>
+                @if (_histories == null)
+                {
+                    <MudSkeleton Class="mt-3" Height="40px" />
+                }
+                else
+                {
+                    if (!_histories.Any())
+                    {
+                        <Empty Class="mt-2" />
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-wrap">
+                            @foreach (var history in _histories)
+                            {
+                                <MudChip Color="Color.Default"
+                                         Size="Size.Small"
+                                         OnClick="@(()=>LabelClickAsync(history))"
+                                         OnClose="@(()=>RemoveHistory(history))">@history</MudChip>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+            <div class="hot-words">
+                <div class="suggest-title">热门搜索</div>
+                @if (_hotWords == null)
+                {
+                    <MudSkeleton Class="mt-3" Height="40px" />
+                }
+                else
+                {
+                    if (!_hotWords.Any())
+                    {
+                        <Empty Class="mt-2" OnRefresh="GetHotWords" />
+                    }
+                    else
+                    {
+                        <div class="hot-words-detail">
+                            <MudList Clickable="true" Dense="true">
+                                @foreach (var hotWord in _hotWords)
+                                {
+                                    <MudListItem Dense="true"
+                                                 Text="@hotWord"
+                                                 OnClick="@(()=>LabelClickAsync(hotWord))" />
+                                }
+                            </MudList>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+</RouteAnimation>
+@code {
+
+    private List<string>? _histories;
+    private List<string>? _hotWords;
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await GetGetHistoriesAsync();
+        await GetHotWords();
+    }
+
+    private Task GetGetHistoriesAsync()
+    {
+        _histories = SearchHistoryStorage.GetHistories();
+        return Task.CompletedTask;
+    }
+
+    private async Task GetHotWords()
+    {
+        _hotWords = null;
+        _hotWords = await _musicNetPlatform.GetHotWordAsync();
+    }
+
+    private async Task LabelClickAsync(string value)
+    {
+        await DoSearchAsync(value);
+    }
+
+    private void RemoveHistory(string value)
+    {
+        SearchHistoryStorage.Remove(value);
+        _histories?.Remove(value);
+    }
+
+    private void ClearHistory()
+    {
+        SearchHistoryStorage.Clear();
+        _histories?.Clear();
+    }
+
+    private Task DoSearchAsync(string key)
+    {
+        if (key.IsEmpty())
+        {
+            return Task.CompletedTask;
+        }
+        SearchHistoryStorage.Add(key);
+        NavigationManager.NavigateTo($"/search-result/{key}");
+        return Task.CompletedTask;
+    }
+}

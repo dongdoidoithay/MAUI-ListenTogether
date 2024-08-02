@@ -1,0 +1,167 @@
+﻿@inherits MyComponentBase
+
+@inject IDialogService DialogService
+@inject MusicResultService MusicResultService
+
+<style>
+    .mud-table-cell-custom-group {
+        font-weight: 500;
+        line-height: 30px !important;
+        color: var(--mud-palette-primary) !important;
+    }
+</style>
+
+@if (Musics == null)
+{
+    <MudSkeleton Class="mt-3" Height="30px" />
+    <MudSkeleton Class="mt-3" Height="30px" />
+    <MudSkeleton Class="mt-3" Height="30px" />
+    <MudSkeleton Class="mt-3" Height="30px" />
+    <MudSkeleton Class="mt-3" Height="30px" />
+    <MudSkeleton Class="mt-3" Height="30px" />
+}
+else
+{
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <MudTable Items="@Musics"
+        @ondblclick="@(()=>TableDoubleClick())"
+                  Dense="true"
+                  Hover="true"
+                  Striped="true"
+                  RowClass="cursor-default"
+                  T="Music"
+                  Virtualize="true"
+                  GroupBy="@_groupDefinition"
+                  GroupHeaderStyle="background-color:var(--mud-palette-table-hover);"
+                  OnRowClick="@RowClick">
+            <HeaderContent>
+                @if (IsLogin)
+                {
+                    <MudTh></MudTh>
+                }
+                <MudTh>duration</MudTh>
+                <MudTh>name</MudTh>
+                <MudTh>歌手</MudTh>
+                <MudTh>专辑</MudTh>
+            </HeaderContent>
+            <GroupHeaderTemplate>
+                <MudTh Class="mud-table-cell-custom-group" colspan="5">
+                    @($"{((PlatformEnum)Enum.Parse(typeof(PlatformEnum), context.Key.ToString())).GetDescription()}  {context.Items.Count()}首歌曲")
+                </MudTh>
+            </GroupHeaderTemplate>
+            <RowTemplate>
+                @if (IsLogin)
+                {
+                    <MudTd>
+                        <MudIconButton Size="Size.Small"
+                                       Icon="fa-solid fa-folder-plus"
+                                       OnClick="()=>AddToMyFavoriteAsync(context)" />
+                    </MudTd>
+                }
+                <MudTd>
+                    @($"{@context.Duration.Minutes:D2}:{@context.Duration.Seconds:D2}")
+                </MudTd>
+                <MudTd>
+                    @context.Name
+                </MudTd>
+                <MudTd>
+                    @context.Artist
+                </MudTd>
+                <MudTd>
+                    @context.Album
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudHidden>
+
+    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+        <MudList>
+
+            @foreach (var item in Musics.GroupBy(x => x.Platform).Select(g => (new { Platform = g.Key, Data = g })))
+            {
+                <MudListItem Text="@($"{item.Platform.GetDescription()}  {item.Data.Count()}首")"
+                             Style="color:var(--mud-palette-primary);"
+                             InitiallyExpanded="true">
+                    <NestedList>
+                        @foreach (var music in item.Data)
+                        {
+                            <MudListItem Style="padding-left: 16px; padding-inline-start: 16px;padding-right: 16px;">
+                                <div class="d-flex align-center"
+                                @onclick="()=>PlayMusicAsync(music)">
+                                    <div class="music-info">
+                                        <div class="name">
+                                            @music.Name
+                                        </div>
+                                        <div class="artist-album">
+                                            @music.Artist - @music.Album
+                                        </div>
+                                    </div>
+                                    @if (IsLogin)
+                                    {
+                                        <MudIconButton Class="ml-5"
+                                                       Size="Size.Small"
+                                                       Icon="fa-solid fa-folder-plus"
+                                                       OnClick="()=>AddToMyFavoriteAsync(music)" />
+                                    }
+
+                                </div>
+                            </MudListItem>
+                            <MudDivider />
+                        }
+                    </NestedList>
+                </MudListItem>
+            }
+        </MudList>
+    </MudHidden>
+}
+
+@code {
+
+    [Parameter]
+    public List<Music>? Musics { get; set; }
+
+    private Music _lastSelectMusic;
+
+    private TableGroupDefinition<Music> _groupDefinition = new()
+        {
+            GroupName = "平台",
+            Indentation = false,
+            Expandable = false,
+            Selector = (e) => e.Platform
+        };
+
+
+    private async Task AddToMyFavoriteAsync(Music musicResult)
+    {
+        var music = new LocalMusic()
+            {
+                Id = musicResult.Id,
+                IdOnPlatform = musicResult.IdOnPlatform,
+                Platform = (Model.Enums.PlatformEnum)musicResult.Platform,
+                Name = musicResult.Name,
+                Album = musicResult.Album,
+                Artist = musicResult.Artist,
+                ExtendDataJson = musicResult.ExtendDataJson,
+                ImageUrl = musicResult.ImageUrl
+            };
+
+        var parameters = new DialogParameters { ["Music"] = music };
+        var options = new DialogOptions { ClassBackground = "dialog-backdrop" };
+        var dialog = await DialogService.ShowAsync<AddToMyFavorite>("", parameters, options);
+        await dialog.Result;
+    }
+
+
+    private void RowClick(TableRowClickEventArgs<Music> value)
+    {
+        _lastSelectMusic = value.Item;
+    }
+    private async Task TableDoubleClick()
+    {
+        await PlayMusicAsync(_lastSelectMusic);
+    }
+    private async Task PlayMusicAsync(Music musicResult)
+    {
+        await MusicResultService.PlayAsync(musicResult.ToLocalMusic());
+    }
+}

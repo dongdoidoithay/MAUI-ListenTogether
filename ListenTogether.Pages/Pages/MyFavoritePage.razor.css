@@ -1,0 +1,41 @@
+@media screen and (min-width: 960px) {
+    .header {
+        display: flex;
+        align-items: center;
+    }
+
+    .my-favorite .tool {
+        width: 50px;
+    }
+
+    .my-favorite .info {
+    }
+}
+
+@media screen and (max-width: 960px) {
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .my-favorite {
+        flex-direction: row-reverse;
+    }
+
+        .my-favorite .tool {
+            width: 50px;
+        }
+
+        .my-favorite .info {
+        }
+}
+
+.music-count {
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+.tool {
+    opacity: 0.4;
+}

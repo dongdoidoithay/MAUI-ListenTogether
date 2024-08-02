@@ -1,0 +1,44 @@
+.player-main {
+    height: 60px;
+}
+
+.music-image {
+    height: 45px;
+}
+
+.image-hover:hover .mask {
+    display: block;
+}
+
+.mask {
+    display: none;
+    width: 45px;
+    height: 45px;
+    margin-top: -51px;
+    opacity: 0.7;
+    cursor: pointer;
+    vertical-align: middle;
+    text-align: center;
+    background-color: var(--mud-palette-table-striped);
+}
+
+.music-detail {
+    margin-left: 16px;
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.music-title {
+    flex: 1;
+    width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.time {
+    width: 100px;
+    text-align: right;
+}

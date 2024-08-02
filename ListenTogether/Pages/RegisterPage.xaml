@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:ListenTogether.Controls"
+             x:Class="ListenTogether.Pages.RegisterPage"
+             Title="注册"
+             BackgroundColor="{AppThemeBinding Dark={StaticResource DarkBackground},Light={StaticResource LightBackground}}">
+
+    <Grid Margin="{OnPlatform WinUI=16,MacCatalyst=16,Android='10,5,10,5',iOS='10,5,10,5'}"
+                 MaximumWidthRequest="{OnPlatform WinUI=380,MacCatalyst=380}">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Label 
+            Grid.Row="0"
+            Text="新用户注册"
+            VerticalTextAlignment="Center"
+            Style="{StaticResource Title}"/>
+
+        <StackLayout
+            Grid.Row="1"
+            Style="{StaticResource StackLayoutLoading}">
+            <Entry Text="{Binding Key}"
+                   Placeholder="请输入注册码"
+                   ReturnType="Next"
+                   Margin="0,10,0,10"/>
+            <Entry Text="{Binding Username}"
+                   Placeholder="请输入用户名"
+                   ReturnType="Next"
+                   Margin="0,0,0,10"/>
+            <Entry Text="{Binding Password}"
+                   Placeholder="密码"
+                   ReturnType="Next"
+                   IsPassword="True"
+                   Margin="0,0,0,10"/>
+            <Entry Text="{Binding Password2}"
+                   Placeholder="确认密码"
+                   ReturnType="Next"
+                   IsPassword="True"
+                   Margin="0,0,0,10"/>
+
+            <Button Text="注册"
+                    Margin="0,20,0,0"
+                    Command="{Binding RegisterAsyncCommand}"
+                    BackgroundColor="{AppThemeBinding Dark={StaticResource DarkBtnBackground},Light={StaticResource LightBtnBackground}}"
+                    TextColor="{AppThemeBinding Dark={StaticResource DarkBtnText},Light={StaticResource LightBtnText}}"/>
+        </StackLayout>
+    </Grid>
+</ContentPage>

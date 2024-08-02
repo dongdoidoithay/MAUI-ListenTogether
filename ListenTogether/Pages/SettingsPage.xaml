@@ -1,0 +1,300 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:ListenTogether.Controls"
+             xmlns:hc="clr-namespace:ListenTogether.HandCursorControls"
+             x:Class="ListenTogether.Pages.SettingsPage"
+             Title="设置">
+
+    <Grid BackgroundColor="{AppThemeBinding Dark={StaticResource DarkBackground},Light={StaticResource LightBackground}}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <StackLayout
+            Grid.Row="0"
+            Margin="{OnPlatform WinUI=16,MacCatalyst=16,Android='10,5,10,5',iOS='10,5,10,5'}"
+            Style="{StaticResource StackLayoutLoading}">
+
+            <StackLayout VerticalOptions="FillAndExpand"
+                     MaximumWidthRequest="{OnPlatform WinUI=380,MacCatalyst=380}">
+
+                <StackLayout Margin="0,0,0,20"
+                     Orientation="Horizontal"
+                     VerticalOptions="Start">
+                    <Label Text="我的"
+                           VerticalTextAlignment="Center"
+                           Style="{StaticResource Title}"/>
+                </StackLayout>
+
+                <ScrollView VerticalOptions="FillAndExpand">
+                    <StackLayout Padding="{OnPlatform WinUI='20,0,20,0',MacCatalyst='20,0,20,0',Android='10,0,10,0',iOS='10,0,10,0'}">
+
+                        <!--用户模块-->
+                        <StackLayout VerticalOptions="Start">
+                            <!--未登录-->
+                            <StackLayout VerticalOptions="Start"
+                                 IsVisible="{Binding UserInfo, Converter={StaticResource IsEqualConverter}}">
+                                <Button Text="登录/注册 >"
+                                FontSize="17"
+                                WidthRequest="120"
+                                BackgroundColor="Transparent"
+                                BorderColor="{AppThemeBinding Dark={StaticResource DarkBtnText},Light={StaticResource LightBtnText}}"
+                                BorderWidth="1"
+                                HorizontalOptions="StartAndExpand"
+                                Command="{Binding GoToLoginAsyncCommand}"/>
+                            </StackLayout>
+                            <!--已登录-->
+                            <StackLayout VerticalOptions="Start"
+                             Orientation="Horizontal"
+                             IsVisible="{Binding UserInfo, Converter={StaticResource IsNotEqualConverter}}">
+                                <Image Aspect="AspectFill"
+                                       WidthRequest="64"
+                                       HeightRequest="64"
+                                       VerticalOptions="Center"
+                                       HorizontalOptions="Center">
+                                    <Image.Source>
+                                        <UriImageSource Uri="{Binding UserInfo.Avatar}"
+                                                        CacheValidity="30" />
+                                    </Image.Source>
+                                </Image>
+
+                                <StackLayout Margin="10,0,0,0"
+                                 HeightRequest="64">
+                                    <Label Margin="0,5,0,0"
+                               Text="{Binding UserInfo.Nickname}"
+                               VerticalOptions="Start"/>
+                                    <Label Margin="0,0,0,5"
+                               Text="{Binding UserInfo.Username,StringFormat='{}用户名：{0}'}"
+                               VerticalOptions="EndAndExpand"/>
+                                </StackLayout>
+                            </StackLayout>
+                        </StackLayout>
+
+                        <!--设置模块-->
+                        <StackLayout Margin="0,20,0,0">
+                            <!-- 常规设置 -->
+                            <Label
+                                Text="常规"
+                                Margin="0,40,0,0"
+                                FontAttributes="Bold"/>
+
+                            <StackLayout Orientation="Horizontal">
+                                <Label
+                                    Text="启动时检查更新"
+                                    VerticalTextAlignment="Center"/>
+                                <Switch
+                                    IsToggled="{Binding IsAutoCheckUpdate}"
+                                    HorizontalOptions="EndAndExpand"/>
+                            </StackLayout>
+
+                            <StackLayout Orientation="Horizontal">
+                                <Label
+                                    Text="外观"                                    
+                                    VerticalTextAlignment="Center"/>
+                                <hc:HandCursorLabel
+                                    Style="{StaticResource Explain}"
+                                    HorizontalOptions="EndAndExpand">
+                                    <hc:HandCursorLabel.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding ChooseAppThemeAsyncCommand}"/>
+                                    </hc:HandCursorLabel.GestureRecognizers>
+                                    <hc:HandCursorLabel.Triggers>
+                                        <DataTrigger
+                                            Binding="{Binding AppThemeInt}"
+                                            Value="0"
+                                            TargetType="hc:HandCursorLabel">
+                                            <Setter
+                                                Property="Text"
+                                                Value="跟随系统 >"/>
+                                        </DataTrigger>
+                                        <DataTrigger
+                                            Binding="{Binding AppThemeInt}"
+                                            Value="1"
+                                            TargetType="hc:HandCursorLabel">
+                                            <Setter
+                                                Property="Text"
+                                                Value="浅色 >"/>
+                                        </DataTrigger>
+                                        <DataTrigger
+                                            Binding="{Binding AppThemeInt}"
+                                            Value="2"
+                                            TargetType="hc:HandCursorLabel">
+                                            <Setter
+                                                Property="Text"
+                                                Value="深色 >"/>
+                                        </DataTrigger>
+                                    </hc:HandCursorLabel.Triggers>
+
+                                </hc:HandCursorLabel>
+                            </StackLayout>
+
+                            <!-- 搜索设置 -->
+                            <Label 
+                                Margin="0,40,0,0"
+                                Text="搜索"
+                                FontAttributes="Bold"/>
+
+                            <StackLayout Orientation="Horizontal">
+                                <Label
+                                    Text="网易云音乐"
+                                    VerticalTextAlignment="Center"/>
+                                <Switch
+                                    IsToggled="{Binding IsEnableNetEase}"
+                                    HorizontalOptions="EndAndExpand"/>
+                            </StackLayout>
+                            <StackLayout Orientation="Horizontal">
+                                <Label
+                                    Text="酷我音乐"
+                                    VerticalTextAlignment="Center"/>
+                                <Switch
+                                    IsToggled="{Binding IsEnableKuWo}"
+                                    HorizontalOptions="EndAndExpand"/>
+                            </StackLayout>
+                            <StackLayout Orientation="Horizontal">
+                                <Label
+                                    Text="酷狗音乐"
+                                    VerticalTextAlignment="Center"/>
+                                <Switch
+                                    IsToggled="{Binding IsEnableKuGou}"
+                                    HorizontalOptions="EndAndExpand"/>
+                            </StackLayout>
+                            <StackLayout Orientation="Horizontal">
+                                <Label
+                                    Text="咪咕音乐"
+                                    VerticalTextAlignment="Center"/>
+                                <Switch
+                                    IsToggled="{Binding IsEnableMiGu}"
+                                    HorizontalOptions="EndAndExpand"/>
+                            </StackLayout>
+                            <StackLayout Orientation="Horizontal">
+                                <Label
+                                    Text="隐藏小于1分钟的歌曲"
+                                    VerticalTextAlignment="Center"/>
+                                <Switch
+                                    IsToggled="{Binding IsHideShortMusic}"
+                                    HorizontalOptions="EndAndExpand"/>
+                            </StackLayout>
+                            <StackLayout Orientation="Horizontal">
+                                <Label
+                                    Text="歌曲名或歌手名必须包含搜索词"
+                                    VerticalTextAlignment="Center"/>
+                                <Switch
+                                    IsToggled="{Binding IsMatchSearchKey}"
+                                    HorizontalOptions="EndAndExpand"/>
+                            </StackLayout>
+                            <!-- 播放设置 -->
+                            <Label
+                                Margin="0,40,0,0"
+                                Text="播放"
+                                FontAttributes="Bold"/>
+
+                            <StackLayout
+                                Orientation="Horizontal"
+                                IsVisible="{OnIdiom Default=false,Phone=true}">
+                                <Label
+                                    Text="仅在WIFI下播放未缓存的歌曲"
+                                    VerticalTextAlignment="Center"/>
+                                <Switch
+                                    IsToggled="{Binding IsWifiPlayOnly}"
+                                    HorizontalOptions="EndAndExpand"/>
+                            </StackLayout>
+
+                            <StackLayout
+                                Orientation="Horizontal"
+                                IsVisible="{OnIdiom Default=false,Phone=true}">
+                                <Label
+                                    Text="仅在WIFI播放页面禁止屏幕关闭"
+                                    VerticalTextAlignment="Center"/>
+                                <Switch
+                                    IsToggled="{Binding IsPlayingPageKeepScreenOn}"
+                                    HorizontalOptions="EndAndExpand"/>
+                            </StackLayout>
+
+                            <StackLayout Orientation="Horizontal">
+                                <Label
+                                    Text="播放歌单前清空播放列表"
+                                    VerticalTextAlignment="Center"/>
+                                <Switch
+                                    IsToggled="{Binding IsCleanPlaylistWhenPlaySongMenu}"
+                                    HorizontalOptions="EndAndExpand"/>
+                            </StackLayout>
+                        </StackLayout>
+
+                        <!--其它模块-->
+                        <StackLayout Margin="0,20,0,0">
+                            <hc:HandCursorButton
+                                Text="日志管理"
+                                Command="{Binding GoToLogAsyncCommand}"/>
+                            <hc:HandCursorButton
+                                Text="歌曲缓存"
+                                Margin="0,5,0,0"
+                                Command="{Binding GoToCacheCleanAsyncCommand}"/>
+                            <hc:HandCursorButton
+                                Text="定时关闭"
+                                Margin="0,5,0,0"
+                                Command="{Binding GoToAutoCloseAsyncCommand}"/>
+                            <hc:HandCursorButton
+                                Text="退出账号"
+                                Margin="0,5,0,0"
+                                IsVisible="{Binding UserInfo, Converter={StaticResource IsNotEqualConverter}}"
+                                Command="{Binding LogoutAsyncCommand}"/>
+                            <BoxView
+                                Margin="0,10,0,10"
+                                HeightRequest="1"/>
+
+                            <!-- 关于 -->
+                            <StackLayout>
+                                <Label
+                                    Text="一起听"
+                                    FontSize="18"
+                                    HorizontalOptions="CenterAndExpand"/>
+                                <Label
+                                    Margin="0,15,0,0"
+                                    Text="{Binding VersionString, StringFormat='{}版本：{0}'}"
+                                    Style="{StaticResource Explain}"
+                                    HorizontalOptions="CenterAndExpand"/>
+                                <hc:HandCursorLabel
+                                    Margin="0,5,0,0"
+                                    Text="检查更新"
+                                    ToolTipProperties.Text="检查新版本"
+                                    TextDecorations="Underline"
+                                    Style="{StaticResource Explain}"
+                                    HorizontalOptions="CenterAndExpand">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding CheckUpdateAsyncCommand}"/>
+                                    </Label.GestureRecognizers>
+                                </hc:HandCursorLabel>
+                                <Label
+                                    Margin="0,15,0,0"
+                                    Text="本软件基于GPL-3.0协议，开源、免费"
+                                    Style="{StaticResource Explain}"
+                                    HorizontalOptions="CenterAndExpand"/>
+                                <Label
+                                    Text="作者：九零"
+                                    Style="{StaticResource Explain}"
+                                    HorizontalOptions="CenterAndExpand"/>
+                                <hc:HandCursorLabel
+                                    Style="{StaticResource Explain}"
+                                    HorizontalOptions="CenterAndExpand"
+                                    TextDecorations="Underline"
+                                    Text="GitHub"
+                                    TextColor="{AppThemeBinding Dark={StaticResource DarkLink},Light={StaticResource LightLink}}"
+                                    ToolTipProperties.Text="查看源码">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding OpenUrlAsyncCommand}"
+                                                              CommandParameter="https://github.com/JiuLing-zhang/ListenTogether" />
+                                    </Label.GestureRecognizers>
+                                </hc:HandCursorLabel>
+                            </StackLayout>
+                        </StackLayout>
+                    </StackLayout>
+                </ScrollView>
+            </StackLayout>
+        </StackLayout>
+        <controls:Player
+            Grid.Row="1"
+            x:Name="player"
+            IsPlayingPage="False"/>
+    </Grid>
+</ContentPage>

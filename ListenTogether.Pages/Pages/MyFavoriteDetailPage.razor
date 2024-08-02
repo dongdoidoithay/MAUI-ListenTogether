@@ -1,0 +1,189 @@
+﻿@page "/my-favorite-detail/{myFavoriteId:int}"
+@using ListenTogether.Filters.MusicSearchFilter;
+
+@inject MusicResultService MusicResultService
+@inject MusicNetPlatform _musicNetPlatform
+@inject IDialogService DialogService
+@inject IMyFavoriteService MyFavoriteService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<Loading IsLoading="_isLoading"></Loading>
+<RouteAnimation>
+    @if (_myFavorite == null)
+    {
+        <div class="d-flex">
+            <MudText Typo="Typo.h6">歌单</MudText>
+            <MudSkeleton Class="ml-3" Width="50%" />
+        </div>
+    }
+    else
+    {
+        <div class="header">
+            <MudText Typo="Typo.h6">@_myFavorite.Name</MudText>
+            <div>
+                <MudButton Variant="Variant.Text"
+                           Class="ml-5"
+                           EndIcon="@Icons.Material.Filled.Edit"
+                           IconSize="Size.Small"
+                           Size="Size.Small"
+                           OnClick="MyFavoriteRenameAsync"
+                           Color="Color.Primary">重命名</MudButton>
+                <MudButton Variant="Variant.Text"
+                           Class="ml-2"
+                           EndIcon="fa-solid fa-trash"
+                           IconSize="Size.Small"
+                           Size="Size.Small"
+                           OnClick="DeleteMyFavoriteAsync"
+                           Color="Color.Primary">删除歌单</MudButton>
+            </div>
+        </div>
+    }
+
+    @if (_myFavoriteDetailList == null)
+    {
+        <MudSkeleton Class="mt-1" Height="40px" />
+        <MudSkeleton Class="mt-1" Height="40px" />
+        <MudSkeleton Class="mt-1" Height="40px" />
+        <MudSkeleton Class="mt-1" Height="40px" />
+    }
+    else
+    {
+        @if (!_myFavoriteDetailList.Any())
+        {
+            <Empty OnRefresh="GetMyFavoriteDetailListAsync" />
+        }
+        else
+        {
+            var index = 1;
+            <MudList Clickable="true">
+                @foreach (var myFavoriteDetail in _myFavoriteDetailList)
+                {
+                    <MudListItem Style="cursor:default">
+                        <div class="d-flex align-center my-favorite-detail">
+                            <div class="flex-grow-0 tool">
+                                <MudIconButton Icon="fa-solid fa-xmark"
+                                               Size="Size.Small"
+                                               OnClick="@(()=>DeleteAsync(myFavoriteDetail.Id))"></MudIconButton>
+                            </div>
+
+                            <MouseDiv Class="d-flex align-center flex-grow-1" OnClick="@(()=>Play(myFavoriteDetail))">
+                                <div class="mr-3 seq">@(index++)</div>
+                                <div>
+                                    <div class="d-flex align-center">
+                                        <MudChip Label="true"
+                                                 Variant="Variant.Outlined"
+                                                 Class="mr-2"
+                                                 Style="font-size: 12px;width: 35px;height: 20px;opacity: 0.7;padding-left: 6px;"
+                                                 Size="Size.Small">@myFavoriteDetail.Music.Platform.GetDescription()</MudChip>
+                                        <div>
+                                            <MudText Typo="Typo.subtitle1">
+                                                @myFavoriteDetail.Music.Name
+                                            </MudText>
+                                        </div>
+
+                                    </div>
+                                    <div>
+                                        <MudText Typo="Typo.caption" Class="ml-2">
+                                            @($"{myFavoriteDetail.Music.Artist} - {myFavoriteDetail.Music.Album}")
+                                        </MudText>
+                                    </div>
+                                </div>
+                            </MouseDiv>
+                        </div>
+                    </MudListItem>
+                    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                        <MudDivider />
+                    </MudHidden>
+                }
+            </MudList>
+        }
+    }
+</RouteAnimation>
+@code {
+    [Parameter]
+    public int MyFavoriteId { get; set; }
+    private bool _isLoading = false;
+    private MyFavorite? _myFavorite;
+    private List<MyFavoriteDetail>? _myFavoriteDetailList;
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _myFavorite = await MyFavoriteService.GetOneAsync(MyFavoriteId);
+        await GetMyFavoriteDetailListAsync();
+    }
+
+    private async Task GetMyFavoriteDetailListAsync()
+    {
+        _myFavoriteDetailList = null;
+        _myFavoriteDetailList = await MyFavoriteService.GetMyFavoriteDetailAsync(MyFavoriteId);
+    }
+
+    private async Task MyFavoriteRenameAsync()
+    {
+        var parameters = new DialogParameters { ["MyFavoriteOld"] = _myFavorite };
+        var options = new DialogOptions { ClassBackground = "dialog-backdrop" };
+        var dialog = await DialogService.ShowAsync<MyFavoriteRename>("", parameters, options);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            _myFavorite = result.Data as MyFavorite;
+        }
+    }
+
+    private async Task DeleteMyFavoriteAsync()
+    {
+        bool? result = await DialogService.ShowMessageBox("", "确定要删除该歌单吗？", yesText: "确定", cancelText: "取消");
+        if (result == null || result.Value == false)
+        {
+            return;
+        }
+
+        _isLoading = true;
+        var isRemove = await MyFavoriteService.RemoveAsync(MyFavoriteId);
+        if (isRemove == false)
+        {
+            Snackbar.Add("删除失败", Severity.Error);
+            return;
+        }
+        NavigationManager.NavigateTo("/my-favorite");
+    }
+
+    private async Task DeleteAsync(int id)
+    {
+        bool? result = await DialogService.ShowMessageBox("", "确定从歌单删除吗？", yesText: "确定", cancelText: "取消");
+        if (result == null || result.Value == false)
+        {
+            return;
+        }
+
+        _isLoading = true;
+        var isDeleted = await MyFavoriteService.RemoveDetailAsync(id);
+        _isLoading = false;
+        if (!isDeleted)
+        {
+            Snackbar.Add("删除失败", Severity.Error);
+            return;
+        };
+        _myFavoriteDetailList?.RemoveAll(x => x.Id == id);
+        Snackbar.Add("删除成功", Severity.Success);
+    }
+
+
+    private async Task Play(MyFavoriteDetail myFavoriteDetail)
+    {
+        var music = new LocalMusic()
+            {
+                Id = myFavoriteDetail.Music.Id,
+                Artist = myFavoriteDetail.Music.Artist,
+                Album = myFavoriteDetail.Music.Album,
+                Name = myFavoriteDetail.Music.Name,
+                IdOnPlatform = myFavoriteDetail.Music.Id,
+                ImageUrl = myFavoriteDetail.Music.ImageUrl,
+                Platform = myFavoriteDetail.Music.Platform,
+                ExtendDataJson = myFavoriteDetail.Music.ExtendDataJson
+            };
+        await MusicResultService.PlayAsync(music);
+    }
+
+}

@@ -1,0 +1,79 @@
+﻿@inject NavigationManager NavigationManager
+@inject MusicNetPlatform _musicNetPlatform
+
+<MudChip Icon="@Icons.Material.Filled.Search"
+         Class="cursor-text"
+         IconColor="Color.Primary"
+         OnClick="GotoSearchPage"
+         Style="display: flex; justify-content: left; padding-left: 15px;">
+    <div class="hot-word @(_isLeave?"leave":"")">
+        @_text
+    </div>
+</MudChip>
+
+@code {
+    private bool _isLeave = false;
+    private string _text = "";
+    private static List<string>? _hotWords;
+    private bool _isTimerStop = false;
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await Task.Run(async () =>
+        {
+            while (!_isTimerStop)
+            {
+                try
+                {
+                    if (_hotWords == null || !_hotWords.Any())
+                    {
+                        _hotWords = await _musicNetPlatform.GetHotWordAsync();
+                    }
+                    if (!_hotWords.Any())
+                    {
+                        continue;
+                    }
+
+                    _isLeave = false;
+                    await InvokeAsync(StateHasChanged);
+                    await Task.Delay(2000);
+                    string tmpText = "";
+                    if (_hotWords.Count == 1)
+                    {
+                        tmpText = _hotWords[0];
+                    }
+                    else
+                    {
+                        do
+                        {
+                            tmpText = JiuLing.CommonLibs.RandomUtils.GetOneFromList(_hotWords);
+                        } while (_text == tmpText);
+                    }
+                    _text = tmpText;
+                    _isLeave = true;
+                    await InvokeAsync(StateHasChanged);
+
+                }
+                catch (Exception)
+                {
+                }
+                finally
+                {
+                    await Task.Delay(10000);
+                }
+            }
+        });
+
+    }
+
+    private void GotoSearchPage()
+    {
+        NavigationManager.NavigateTo("/search");
+    }
+
+    public void Dispose()
+    {
+        _isTimerStop = true;
+    }
+}

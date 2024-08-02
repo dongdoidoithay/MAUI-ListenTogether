@@ -1,0 +1,62 @@
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               xmlns:hc="clr-namespace:ListenTogether.HandCursorControls"
+               x:Class="ListenTogether.Pages.ChooseMyFavoritePage"
+               x:Name="self"
+               CanBeDismissedByTappingOutsideOfPopup="False">
+
+    <Grid
+        RowDefinitions="30,Auto,50"
+        RowSpacing="10"
+        BackgroundColor="{AppThemeBinding Dark={StaticResource DarkBackground},Light={StaticResource LightBackground}}"
+        Padding="{OnPlatform WinUI=20,MacCatalyst=20,Android='10',iOS='10'}">
+        <StackLayout
+            Orientation="Horizontal"
+            HorizontalOptions="FillAndExpand"
+            Grid.Row="0">
+            <Label
+                HorizontalOptions="Start"
+                Text="请选择要加入的歌单"/>
+
+            <hc:HandCursorStackLayout
+                Orientation="Horizontal"
+                HorizontalOptions="EndAndExpand">
+                <StackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="AddMyFavorite_Tapped"/>
+                </StackLayout.GestureRecognizers>
+                <Image
+                    Source="{AppThemeBinding Dark='plus_dark.png',Light='plus.png'}"
+                    HeightRequest="20"                    
+                    WidthRequest="20">
+                </Image>
+                <Label
+                    Text="新增歌单"
+                    IsVisible="{OnPlatform WinUI=True,MacCatalyst=True,Android=False,iOS=False}"
+                    VerticalTextAlignment="Center"/>
+            </hc:HandCursorStackLayout>
+        </StackLayout>
+
+        <CollectionView
+            Grid.Row="1"
+            VerticalOptions="FillAndExpand"
+            ItemsSource="{Binding MyFavoriteCollection, Source={x:Reference self}}"
+            SelectionMode="Single"
+            SelectionChanged="MyFavorite_SelectionChanged">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <hc:HandCursorStackLayout
+                        Padding="{OnPlatform WinUI=0,MacCatalyst=0,Android='10',iOS='10'}">
+                        <Label Text="{Binding Name}"/>
+                    </hc:HandCursorStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <hc:HandCursorButton
+            Grid.Row="2"
+            VerticalOptions="End"
+            HeightRequest="40"
+            Text="关闭"
+            Clicked="BtnClose_Clicked"/>
+    </Grid>
+</toolkit:Popup>

@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:pages="clr-namespace:ListenTogether.Pages"
+       x:Class="ListenTogether.Pages.DesktopShell"
+       FlyoutBehavior="Locked"
+       FlyoutBackgroundColor="{AppThemeBinding Dark={StaticResource DarkFlyoutBackgroundColor},Light={StaticResource LightFlyoutBackgroundColor}}"
+       FlyoutWidth="150"
+       NavBarIsVisible="False"
+       Loaded="Shell_Loaded">
+
+    <Shell.FlyoutHeader>
+        <StackLayout Orientation="Horizontal"
+                     HeightRequest="68"
+                     WidthRequest="110"
+                     VerticalOptions="CenterAndExpand"
+                     Spacing="5">
+            <Image Source="{AppThemeBinding Light=logo.png,Dark=logo_dark.png}"
+                   WidthRequest="40"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Center" />
+            <Label Text="一起听"
+                   Style="{StaticResource Logo}"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   VerticalTextAlignment="Center"/>
+        </StackLayout>
+    </Shell.FlyoutHeader>
+
+    <FlyoutItem Title="发现"
+                Icon="{AppThemeBinding Light=discover.png, Dark=discover_dark.png}">
+        <Tab>
+            <ShellContent ContentTemplate="{DataTemplate pages:DiscoverPage}"/>
+        </Tab>
+    </FlyoutItem>
+
+    <FlyoutItem Title="{Binding Playlist.Title}"
+                Icon="{AppThemeBinding Light=playlist.png, Dark=playlist_dark.png}">
+        <Tab>
+            <ShellContent  ContentTemplate="{DataTemplate pages:PlaylistPage}" />
+        </Tab>
+    </FlyoutItem>
+    <FlyoutItem Title="{Binding MyFavorite.Title}"
+                Icon="{AppThemeBinding Light=heart.png, Dark=heart_dark.png}">
+        <Tab>
+            <ShellContent  ContentTemplate="{DataTemplate pages:MyFavoritePage}" />
+        </Tab>
+    </FlyoutItem>
+
+    <FlyoutItem Title="{Binding Settings.Title}"
+                Icon="{AppThemeBinding Light=my.png, Dark=my_dark.png}">
+        <Tab>
+            <ShellContent  ContentTemplate="{DataTemplate pages:SettingsPage}" />
+        </Tab>
+    </FlyoutItem>
+    <Shell.ItemTemplate>
+        <DataTemplate>
+            <StackLayout Orientation="Horizontal">
+                <Image Margin="6,10" WidthRequest="18" HeightRequest="18" Source="{Binding Icon}"/>
+                <Label Margin="6,10"
+                       Text="{Binding Title}"
+                       TextColor="{AppThemeBinding Dark={StaticResource DarkTitle},Light={StaticResource LightTitle}}"/>
+            </StackLayout>
+        </DataTemplate>
+    </Shell.ItemTemplate>
+</Shell>

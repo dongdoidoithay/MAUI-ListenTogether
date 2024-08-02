@@ -1,0 +1,28 @@
+@media screen and (min-width: 960px) {
+    .header {
+        display: flex;
+        align-items: center;
+    }
+}
+
+@media screen and (max-width: 960px) {
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .my-favorite-detail {
+        flex-direction: row-reverse;
+    }
+}
+
+.seq {
+    font-size: 17px;
+    opacity: 0.4;
+}
+
+
+.tool {
+    opacity: 0.4;
+}

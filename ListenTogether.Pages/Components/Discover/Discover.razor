@@ -1,0 +1,164 @@
+﻿@inject ILogger<Discover> _logger
+@inject MusicNetPlatform _musicNetPlatform
+@inject NavigationManager NavigationManager
+
+<div class="song-menu-container">
+    @if (!_songMenus.Any())
+    {
+        <MudGrid Class="mt-4" Spacing="3">
+            @for (int i = 0; i < 12; i++)
+            {
+                <MudItem xs="4" md="3">
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="60px" />
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    else
+    {
+        <InfiniteScroll ObserverTargetId="observerTarget" ObservableTargetReached="(e) => GetSongMenusFromTagAsync()">
+            <MudGrid Class="mt-4">
+                @foreach (var songMenu in _songMenus)
+                {
+                    <MudItem xs="4" md="3" Class="d-flex justify-center">
+                        <div class="song-menu-item" onclick=@(()=>GotoSongMenuPage(songMenu.Id, songMenu.Name,songMenu.ImageUrl))>
+                            <img src="@songMenu.ImageUrl"
+                                 alt="@songMenu.Name"
+                                 class="rounded-lg mb-1 song-menu-img">
+                            <div class="song-menu-name">@songMenu.Name</div>
+                        </div>
+                    </MudItem>
+                }
+            </MudGrid>
+            @*The target element that we observe. Once this is reached the callback will be triggered.*@
+            <div id="observerTarget"></div>
+        </InfiniteScroll>
+        @if (_isLoading)
+        {
+            <div class="d-flex justify-center mt-2">
+                <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
+            </div>
+        }
+        @if (_pageEnd)
+        {
+            <EndLine />
+        }
+    }
+</div>
+@code {
+    [Parameter]
+    public PlatformEnum Platform { get; set; }
+    [Parameter]
+    public string ActiveTagId { get; set; }
+    private bool _isTopPage => ActiveTagId == "List";
+    private string _currentQueryString = "";
+    private static readonly SemaphoreSlim PageReloadSlim = new(1, 1);
+    private static readonly SemaphoreSlim SongMenuLoadSlim = new(1, 1);
+    private bool _pageEnd = false;
+    private int _page = 0;
+    private bool _isLoading = false;
+    private List<SongMenu> _songMenus = new List<SongMenu>();
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        await PageReloadSlim.WaitAsync();
+        try
+        {
+            var queryString = $"{Platform}-{ActiveTagId}";
+            if (queryString == _currentQueryString)
+            {
+                return;
+            }
+            _currentQueryString = queryString;
+            await ResetSongMenusAsync();
+            await InvokeAsync(StateHasChanged);
+            if (_isTopPage)
+            {
+                _songMenus = await _musicNetPlatform.GetSongMenusFromTop((NetMusicLib.Enums.PlatformEnum)Platform);
+            }
+            else
+            {
+                _page = 0;
+                _pageEnd = false;
+                await GetSongMenusFromTagAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"发现页页面加载失败:{ex.Message}");
+            _logger.LogError(ex, "发现页页面加载失败。");
+        }
+        finally
+        {
+            PageReloadSlim.Release();
+        }
+    }
+
+    private async Task GetSongMenusFromTagAsync()
+    {
+        await SongMenuLoadSlim.WaitAsync();
+        try
+        {
+            if (_isTopPage)
+            {
+                return;
+            }
+            if (_pageEnd)
+            {
+                return;
+            }
+
+            _isLoading = true;
+            _page++;
+            var songMenus = await _musicNetPlatform.GetSongMenusFromTagAsync((NetMusicLib.Enums.PlatformEnum)Platform, ActiveTagId, _page);
+            if (songMenus.Count == 0)
+            {
+                _pageEnd = true;
+            }
+            _songMenus.AddRange(songMenus);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"歌曲加载失败:{ex.Message}");
+            _logger.LogError(ex, "歌曲加载失败。");
+        }
+        finally
+        {
+            _isLoading = false;
+            SongMenuLoadSlim.Release();
+        }
+    }
+
+    private Task ResetSongMenusAsync()
+    {
+        _songMenus.Clear();
+        return Task.CompletedTask;
+    }
+
+    private void GotoSongMenuPage(string id, string name, string imageUrl)
+    {
+        SongMenuEnum songMenuType;
+        if (_isTopPage)
+        {
+            songMenuType = SongMenuEnum.Top;
+        }
+        else
+        {
+            songMenuType = SongMenuEnum.Tag;
+        }
+
+        var obj = new SongMenu()
+            {
+                Id = id,
+                Name = name,
+                ImageUrl = imageUrl
+            };
+        var songMenuInfo = JiuLing.CommonLibs.Security.Base64Utils.StringToBase64(obj.ToJson());
+        NavigationManager.NavigateTo($"/song-menu/{(int)Platform}/{(int)songMenuType}/{songMenuInfo}");
+    }
+}

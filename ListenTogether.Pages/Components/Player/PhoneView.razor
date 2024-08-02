@@ -1,0 +1,78 @@
+﻿@inherits MyComponentBase
+
+<div class="d-flex align-center" @onclick="OpenPlayingPageAsync">
+    <img src="@(Music == null ? "https://jiuling.cc/images/music.svg" : Music.ImageUrl)"
+         class="flex-grow-0 mr-2 small-img @(IsPlaying ? "" : "animation-paused")" />
+
+    <div class="flex-grow-1 music-info">
+        @($"{Music?.Name} - {Music?.Artist}")
+    </div>
+    <div class="flex-grow-0 d-flex align-center play-btn">
+        <MudIconButton Size="Size.Small"
+                       Disabled="@(Music==null || _isFirstPlay)"
+                       Icon="fa-solid fa-forward-step"
+                       OnClick="NextAsync" />
+
+        <MudToggleIconButton Size="Size.Small"
+                             Class="ml-1"
+                             Disabled="@(Music==null)"
+                             Toggled="@IsPlaying"
+                             ToggledChanged="PlayAsync"
+                             Icon="fa-regular fa-circle-play"
+                             ToggledSize="Size.Small"
+                             ToggledIcon="fa-solid fa-circle-pause" />
+    </div>
+
+</div>
+
+@code {
+
+    private bool _isFirstPlay = true;
+
+    [Parameter]
+    public LocalMusic? Music { get; set; }
+    [Parameter]
+    public bool IsPlaying { get; set; }
+
+    private MusicPosition? _position;
+    [Parameter]
+    public MusicPosition? Position
+    {
+        get => _position;
+        set
+        {
+            _position = value;
+            if (_position != null && _isFirstPlay)
+            {
+                _isFirstPlay = false;
+            }
+        }
+    }
+
+    [Parameter]
+    public EventCallback OnPlay { get; set; }
+    [Parameter]
+    public EventCallback OnOpenPlayingPage { get; set; }
+    [Parameter]
+    public EventCallback OnNext { get; set; }
+
+    private async Task PlayAsync(bool toggled)
+    {
+        _isFirstPlay = false;
+        await OnPlay.InvokeAsync();
+    }
+
+    private async Task OpenPlayingPageAsync()
+    {
+        if (_isFirstPlay)
+        {
+            return;
+        }
+        await OnOpenPlayingPage.InvokeAsync();
+    }
+
+    private async Task NextAsync()
+    {
+        await OnNext.InvokeAsync();
+    }
+}

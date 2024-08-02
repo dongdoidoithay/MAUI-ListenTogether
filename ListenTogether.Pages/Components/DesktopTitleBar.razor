@@ -1,0 +1,79 @@
+﻿@inject IWindowTitleBar WindowTitleBar
+@inject MusicPlayerService PlayerService
+
+<div class="title-bar d-flex align-start @Class">
+
+    <MudIconButton Icon="@Icons.Material.Filled.Minimize"
+                   Size="Size.Medium"
+                   OnClick="MinimizeAsync" />
+    <MudIconButton Icon=@(_maximizerIcon)
+                   Size="Size.Medium"
+                   OnClick="MaximizeAsync" />
+    <MudIconButton Icon="@Icons.Material.Filled.Close"
+                   Size="Size.Medium"
+                   OnClick="CloseAsync" />
+</div>
+@code {
+
+    [Parameter]
+    public string Class { get; set; } = "";
+    private string _maximizerIcon;
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await SetMaximizerIconAsync();
+        await SetTitleAsync($"一起听");
+        PlayerService.NewMusicAdded += async (_, __) =>
+        {
+            var metadata = PlayerService.Metadata;
+            if (metadata == null)
+            {
+                return;
+            }
+            await SetTitleAsync($"{metadata.Name} - {metadata.Artist}");
+        };
+    }
+
+    private Task MinimizeAsync()
+    {
+        WindowTitleBar.Minimize();
+        return Task.CompletedTask;
+    }
+
+    private async Task MaximizeAsync()
+    {
+        WindowTitleBar.Maximize();
+        await SetMaximizerIconAsync();
+    }
+    private Task CloseAsync()
+    {
+        if (Settings.Environment.General.IsHideWindowWhenClosed)
+        {
+            WindowTitleBar.Minimize();
+        }
+        else
+        {
+            WindowTitleBar.Close();
+        }
+        return Task.CompletedTask;
+    }
+
+    private Task SetMaximizerIconAsync()
+    {
+        if (WindowTitleBar.IsMaximized)
+        {
+            _maximizerIcon = Icons.Material.Filled.CloseFullscreen;
+        }
+        else
+        {
+            _maximizerIcon = Icons.Material.Filled.Fullscreen;
+        }
+        return Task.CompletedTask;
+    }
+
+    private Task SetTitleAsync(string title)
+    {
+        WindowTitleBar.SetTitle(title);
+        return Task.CompletedTask;
+    }
+}
